@@ -23,10 +23,7 @@ app.use(body_parser.urlencoded({ extended: true }));
 
 app.post('/datos', function (req, res) {
   console.log('Petición recibida correctamente');
-  var req_name = req.body.user || '';
-  var req_task = req.body.task || '';
-  console.log(req_name);
-  console.log(req_task);
+  console.log(req.body);
   res.send('Tarea enviada');
 });
 
