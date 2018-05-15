@@ -1,32 +1,51 @@
+var fs = require('fs');
 var express = require('express');
 var body_parser = require('body-parser');
 
 var app = express();
+var tasklist = [];
 
-app.use(express.static('www'));
+app.use(express.static('www/tareas'));
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
 
-// Módulo para peticiones tipo GET
+app.get('/', function (req, res) {
+  fs.readFile("./www/tareas/index.html", "utf8", function (err, text) {
+    text = text.replace("[substitute]", "");
+    res.send(text);
+  });
+  console.log('Petición GET recibida correctamente');
+});
 
-// app.get('/datos', function (req, res) {
-//   console.log('Petición recibida correctamente');
-//   var req_name = req.query.user || '';
-//   var req_task = req.query.task || '';
-//   console.log(req_name);
-//   console.log(req_task);
-//   res.send('Tarea enviada');
-// });
-
-
-// Módulo para peticiones tipo POST
-
-app.post('/datos', function (req, res) {
-  console.log('Petición recibida correctamente');
-  console.log(req.body);
-  res.send('Tarea enviada');
+app.post('/', function (req, res) {
+  fs.readFile('./www/tareas/index.html', 'utf8', function (err, text) {
+    tasklist.push({ username: req.body.user, taskname: req.body.task });
+    var newTask = loadTasks(tasklist);
+    text = text.replace("[substitute]", newTask);
+    console.log(tasklist);
+    res.send(text);
+  });
+  console.log('Petición POST recibida correctamente');
 });
 
 var server = app.listen(80, function () {
   console.log('Servidor web iniciado');
 });
+
+function loadTasks(tasklist) {
+  var newTask = "";
+  for (var index in tasklist) {
+    var newRow = `
+    <tr>
+        <td>[taskid]</td>
+        <td>[username]</td>
+        <td>[taskname]</td>
+    </tr>
+    `;
+    newRow = newRow.replace("[taskid]", parseInt(index) + 1);
+    newRow = newRow.replace("[username]", tasklist[index].username);
+    newRow = newRow.replace("[taskname]", tasklist[index].taskname);
+    newTask += newRow;
+  }
+  return newTask;
+};
