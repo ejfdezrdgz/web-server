@@ -5,6 +5,13 @@ var body_parser = require('body-parser');
 var app = express();
 var tasklist = [];
 
+fs.exists("./list.json", function (excheck) {
+  if (excheck == true) {
+    var data = fs.readFileSync("./list.json", "UTF8");
+    tasklist = JSON.parse(data);
+  };
+});
+
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
 
@@ -18,22 +25,37 @@ app.get('/', function (req, res) {
 
 app.post('/', function (req, res) {
   fs.readFile('./www/tareas/index.html', 'utf8', function (err, text) {
-    tasklist.push({ username: req.body.user, taskname: req.body.task });
-    text = text.replace("[substitute]", loadTasks(tasklist));
-    console.log(tasklist);
-    res.send(text);
+    var taskobj = { username: req.body.user, taskname: req.body.task };
+    tasklist.push(taskobj);
+    writeList();
+    res.redirect("/");
   });
   console.log('Petición POST recibida correctamente');
 });
 
 app.get('/delete/:id?', function (req, res) {
-  tasklist.splice(req.body.taskid, 1);
-  fs.readFile('./www/tareas/index.html', 'utf8', function (err, text) {
+  tasklist.splice(req.query.id - 1, 1);
+  writeList();
+  res.redirect("/");
+  console.log('Petición DELETE recibida correctamente');
+});
+
+app.post('/edit', function (req, res) {
+  tasklist[parseInt(req.body.arrayid)].username = req.body.user;
+  tasklist[parseInt(req.body.arrayid)].taskname = req.body.task;
+  writeList();
+  res.redirect('/');
+});
+
+app.get('/edit/:id?', function (req, res) {
+  fs.readFile("./www/tareas/index.html", "utf8", function (err, text) {
     text = text.replace("[substitute]", loadTasks(tasklist));
-    console.log(tasklist);
+    text = text.replace('action="/"', 'action="/edit"');
+    text = text.replace('value="[arrayid]"', 'value="' + (parseInt(req.query.id) - 1) + '"');
+    text = text.replace('placeholder="Username"', 'value="' + tasklist[parseInt(req.query.id) - 1].username + '"');
+    text = text.replace('placeholder="Task name"', 'value="' + tasklist[parseInt(req.query.id) - 1].taskname + '"');
     res.send(text);
   });
-  console.log('Petición DELETE recibida correctamente');
 });
 
 app.use(express.static('www/tareas'));
@@ -50,7 +72,12 @@ function loadTasks(tasklist) {
       <td>[taskid]</td>
       <td>[username]</td>
       <td>[taskname]</td>
-      <td><a href="/delete?id=[taskid]">Delete</a></td>
+      <td>
+        <div class=optMenu>
+          <a href="/edit?id=[taskid]">Edit</a>
+          <a href="/delete?id=[taskid]">Delete</a>
+        </div>
+      </td>
     </tr>
     `;
     newRow = newRow.split("[taskid]").join(parseInt(index) + 1);
@@ -59,4 +86,10 @@ function loadTasks(tasklist) {
     newTask += newRow;
   }
   return newTask;
+};
+
+function writeList() {
+  fs.writeFile("./list.json", JSON.stringify(tasklist), function () {
+    console.log("Fichero de datos actualizado");
+  });
 };
