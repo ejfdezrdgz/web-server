@@ -1,0 +1,105 @@
+/* *{
+    border: 1px solid black;
+} */
+
+body {
+    width: 50%;
+    display: flex;
+    margin: 10px auto;
+    align-items: center;
+    flex-direction: column;
+    font-family: "Segoe UI";
+    background-color: paleturquoise;
+}
+
+div {
+    width: 70%;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+footer{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 0px;
+    background-color: gainsboro;
+}
+
+form {
+    width: 70%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    font-family: "Segoe UI";
+}
+
+hr {
+    width: 80%;
+}
+
+h1 {
+    width: 30%;
+    font-size: 250%;
+    text-align: center;
+    align-items: center;
+    background-color: gainsboro;
+    border: 2px solid black;
+}
+
+img{
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+input {
+    height: 30%;
+}
+
+table {
+    background-color: black;
+}
+
+tbody {
+    background-color: gainsboro;
+}
+
+td {
+    padding: 5px;
+    text-align: center;
+    text-transform: capitalize;
+}
+
+th {
+    width: 200px;
+    font-size: 20pt;
+}
+
+thead {
+    background-color: paleturquoise;
+}
+
+.optMenu {
+    display: flex;
+    margin: 0px auto;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+#btnSubmit {
+    width: 15%;
+    height: 50px;
+    font-size: 100%;
+    font-weight: bold;
+    font-family: "Segoe UI";
+}
+
+#th-id {
+    width: 50px;
+}

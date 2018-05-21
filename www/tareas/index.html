@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tasker</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <!-- <script src="js/tasker.js"></script> -->
+</head>
+
+<body>
+    <h1>Web Tasker</h1>
+    <form action="/" method="post">
+        <div>
+            <input type="hidden" name="arrayid" value="[arrayid]">
+            <input required type="text" name="user" id="user_input" placeholder="Username">
+            <input required type="text" name="task" id="task_input" placeholder="Task name">
+        </div>
+        <button type="submit" id="btnSubmit">SUBMIT</button>
+    </form>
+    <hr>
+    <table>
+        <thead>
+            <th id=th-id>ID</th>
+            <th>User</th>
+            <th>Task</th>
+            <th>Options</th>
+        </thead>
+        <tbody id="tasktable">[substitute]</tbody>
+    </table>
+    <footer>
+        <img src="resources/img/cl.png" alt="">
+        <p>Copyleft protected. Done by: E. J. Fernández</p>
+    </footer>
+</body>
+
+</html>
