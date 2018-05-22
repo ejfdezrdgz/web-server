@@ -1,15 +1,23 @@
 var fs = require('fs');
+var mysql = require('mysql');
 var express = require('express');
 var body_parser = require('body-parser');
 
 var app = express();
 var tasklist = [];
+var connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'taskhandler',
+  password: 'fwx8w67WB79fc5K2',
+  database: 'tasksDB'
+});
 
-fs.exists("./list.json", function (excheck) {
-  if (excheck == true) {
-    var data = fs.readFileSync("./list.json", "UTF8");
-    tasklist = JSON.parse(data);
-  };
+connection.connect(function (error) {
+  if (error) {
+    throw error;
+  } else {
+    console.log('Conexión exitosa')
+  }
 });
 
 app.use(body_parser.json());
@@ -17,17 +25,16 @@ app.use(body_parser.urlencoded({ extended: true }));
 
 app.get('/', function (req, res) {
   fs.readFile("./www/tareas/index.html", "utf8", function (err, text) {
-    text = text.replace("[substitute]", loadTasks(tasklist));
-    res.send(text);
+    readDB(response,text,res);
   });
   console.log('Petición GET recibida correctamente');
 });
 
 app.post('/', function (req, res) {
   fs.readFile('./www/tareas/index.html', 'utf8', function (err, text) {
-    var taskobj = { username: req.body.user, taskname: req.body.task };
+    let taskobj = { username: req.body.user, taskname: req.body.task };
     tasklist.push(taskobj);
-    writeList();
+    addEntry(taskobj);
     res.redirect("/");
   });
   console.log('Petición POST recibida correctamente');
@@ -35,16 +42,18 @@ app.post('/', function (req, res) {
 
 app.get('/delete/:id?', function (req, res) {
   tasklist.splice(req.query.id - 1, 1);
-  writeList();
+  delEntry(req.query.id);
   res.redirect("/");
   console.log('Petición DELETE recibida correctamente');
 });
 
 app.post('/edit', function (req, res) {
-  tasklist[parseInt(req.body.arrayid)].username = req.body.user;
-  tasklist[parseInt(req.body.arrayid)].taskname = req.body.task;
-  writeList();
+  // tasklist[parseInt(req.body.arrayid)].username = req.body.user;
+  // tasklist[parseInt(req.body.arrayid)].taskname = req.body.task;
+  let taskobj = { taskid: req.body.id, username: req.body.user, taskname: req.body.task };
+  updateEntry(taskobj);
   res.redirect('/');
+  console.log('Petición EDIT recibida correctamente');
 });
 
 app.get('/edit/:id?', function (req, res) {
@@ -60,9 +69,49 @@ app.get('/edit/:id?', function (req, res) {
 
 app.use(express.static('www/tareas'));
 
-var server = app.listen(80, function () {
+var server = app.listen(3000, function () {
   console.log('Servidor web iniciado');
 });
+
+function addEntry(data) {
+  var query = connection.query('INSERT INTO tasks (username, taskname) VALUES (?, ?)', [data.username, data.taskname], function (error, result) {
+    if (error) {
+      throw error;
+    }
+  })
+};
+
+function delEntry(index) {
+  var query = connection.query('DELETE FROM tasks WHERE taskid=?', [index], function (error, result) {
+    if (error) {
+      throw error;
+    }
+  })
+};
+
+function updateEntry(data) {
+  var query = connection.query('UPDATE tasks SET username=?, taskname=? WHERE taskid=?', [data.username, data.taskname, data.taskid], function (error, result) {
+    if (error) {
+      throw error;
+    }
+  })
+};
+
+function response(text,res){
+  text = text.replace("[substitute]", loadTasks(tasklist));
+  res.send(text);
+};
+
+function readDB(cb,text,res) {
+  connection.query('SELECT * FROM tasks', function (error, result) {
+    if (error) {
+      throw error;
+    } else {
+      console.log(result);
+      cb(text,res);
+    }
+  })
+};
 
 function loadTasks(tasklist) {
   var newTask = "";
@@ -80,16 +129,10 @@ function loadTasks(tasklist) {
       </td>
     </tr>
     `;
-    newRow = newRow.split("[taskid]").join(parseInt(index) + 1);
+    newRow = newRow.split("[taskid]").join(tasklist[index].taskid);
     newRow = newRow.replace("[username]", tasklist[index].username);
     newRow = newRow.replace("[taskname]", tasklist[index].taskname);
     newTask += newRow;
   }
   return newTask;
-};
-
-function writeList() {
-  fs.writeFile("./list.json", JSON.stringify(tasklist), function () {
-    console.log("Fichero de datos actualizado");
-  });
 };
