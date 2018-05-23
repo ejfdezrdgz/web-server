@@ -4,7 +4,9 @@ var express = require('express');
 var body_parser = require('body-parser');
 
 var app = express();
-var tasklist = [];
+var server = app.listen(3000, function () {
+  console.log('Servidor web iniciado');
+});
 var connection = mysql.createConnection({
   host: 'localhost',
   user: 'taskhandler',
@@ -16,7 +18,7 @@ connection.connect(function (error) {
   if (error) {
     throw error;
   } else {
-    console.log('Conexión exitosa')
+    console.log('Conexión exitosa');
   }
 });
 
@@ -24,17 +26,11 @@ app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
 
 app.get('/', function (req, res) {
-  connection.query('SELECT * FROM tasks WHERE deleted=false', function (error, result) {
-    if (error) {
-      throw error;
-    } else {
-      fs.readFile("./www/tareas/index.html", "utf8", function (err, text) {
-        text = text.replace("[substitute]", loadTasks(result));
-        res.send(text);
-        console.log('Página principal cargada correctamente');
-      })
-    }
-  })
+  readDB(req, res, 0);
+});
+
+app.get('/edit/:id?', function (req, res) {
+  readDB(req, res, 1);
 });
 
 app.post('/', function (req, res) {
@@ -47,37 +43,18 @@ app.post('/', function (req, res) {
 });
 
 app.get('/delete/:id?', function (req, res) {
-  // tasklist.splice(req.query.id - 1, 1);
   delEntry(req.query.id);
   res.redirect("/");
-  console.log('Entrada añadida correctamente');
+  console.log('Entrada eliminada correctamente de la base de datos');
 });
 
 app.post('/edit', function (req, res) {
-  // tasklist[parseInt(req.body.arrayid)].username = req.body.user;
-  // tasklist[parseInt(req.body.arrayid)].taskname = req.body.task;
-  let taskobj = { taskid: req.body.id, username: req.body.user, taskname: req.body.task };
-  updateEntry(taskobj);
+  updateEntry(req.body);
   res.redirect('/');
-  console.log('Petición EDIT recibida correctamente');
-});
-
-app.get('/edit/:id?', function (req, res) {
-  fs.readFile("./www/tareas/index.html", "utf8", function (err, text) {
-    text = text.replace("[substitute]", loadTasks(tasklist));
-    text = text.replace('action="/"', 'action="/edit"');
-    text = text.replace('value="[arrayid]"', 'value="' + (parseInt(req.query.id) - 1) + '"');
-    text = text.replace('placeholder="Username"', 'value="' + tasklist[parseInt(req.query.id) - 1].username + '"');
-    text = text.replace('placeholder="Task name"', 'value="' + tasklist[parseInt(req.query.id) - 1].taskname + '"');
-    res.send(text);
-  });
+  console.log('Entrada editada correctamente en base de datos');
 });
 
 app.use(express.static('www/tareas'));
-
-var server = app.listen(3000, function () {
-  console.log('Servidor web iniciado');
-});
 
 function addEntry(data) {
   var query = connection.query('INSERT INTO tasks (username, taskname) VALUES (?, ?)', [data.username, data.taskname], function (error, result) {
@@ -92,23 +69,8 @@ function delEntry(index) {
 };
 
 function updateEntry(data) {
-  var query = connection.query('UPDATE tasks SET username=?, taskname=? WHERE taskid=?', [data.username, data.taskname, data.taskid], function (error, result) {
+  var query = connection.query('UPDATE tasks SET username=?, taskname=? WHERE taskid=?', [data.user, data.task, data.arrayid], function (error, result) {
     if (error) { throw error; }
-  })
-};
-
-function response(text, res) {
-  text = text.replace("[substitute]", loadTasks(tasklist));
-  res.send(text);
-};
-
-function readDB(cb, text, res) {
-  connection.query('SELECT * FROM tasks', function (error, result) {
-    if (error) {
-      throw error;
-    } else {
-      cb(text, res);
-    }
   })
 };
 
@@ -134,4 +96,33 @@ function loadTasks(tasklist) {
     newTask += newRow;
   }
   return newTask;
+};
+
+function readDB(req, res, reqcase) {
+  connection.query('SELECT * FROM tasks WHERE deleted=false', function (error, result) {
+    if (error) {
+      throw error;
+    } else {
+      fs.readFile("./www/tareas/index.html", "utf8", function (error, text) {
+        text = text.replace("[substitute]", loadTasks(result));
+        switch (reqcase) {
+          case 0:
+            break;
+
+          case 1:
+            for (let task of result) {
+              if (task.taskid == req.query.id) {
+                var regEd = task;
+              }
+            };
+            text = text.replace('action="/"', 'action="/edit"');
+            text = text.replace('value="[arrayid]"', 'value="' + regEd.taskid + '"');
+            text = text.replace('placeholder="Username"', 'value="' + regEd.username + '"');
+            text = text.replace('placeholder="Task name"', 'value="' + regEd.taskname + '"');
+            break;
+        }
+        res.send(text);
+      })
+    }
+  })
 };

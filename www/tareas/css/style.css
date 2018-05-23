@@ -14,7 +14,6 @@ body {
 
 div {
     width: 70%;
-    height: 100px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -71,8 +70,8 @@ tbody {
 
 td {
     padding: 5px;
+    height: 50px;
     text-align: center;
-    text-transform: capitalize;
 }
 
 th {
@@ -90,6 +89,10 @@ thead {
     align-items: center;
     flex-direction: row;
     justify-content: space-evenly;
+}
+
+#btnDiv {
+    height: 100px;
 }
 
 #btnSubmit {
