@@ -5,7 +5,7 @@
 body {
     width: 50%;
     display: flex;
-    margin: 10px auto;
+    margin: 0px auto;
     align-items: center;
     flex-direction: column;
     font-family: "Segoe UI";
@@ -21,10 +21,10 @@ div {
 
 footer{
     width: 100%;
+    margin: 15px 0px;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
     bottom: 0px;
     background-color: gainsboro;
 }
@@ -42,7 +42,8 @@ hr {
 }
 
 h1 {
-    width: 30%;
+    width: auto;
+    padding: 0px 2%;
     font-size: 250%;
     text-align: center;
     align-items: center;
@@ -96,8 +97,7 @@ thead {
 }
 
 #btnSubmit {
-    width: 15%;
-    height: 50px;
+    padding: 10px 10px;
     font-size: 100%;
     font-weight: bold;
     font-family: "Segoe UI";
