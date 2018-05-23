@@ -24,27 +24,33 @@ app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
 
 app.get('/', function (req, res) {
-  fs.readFile("./www/tareas/index.html", "utf8", function (err, text) {
-    readDB(response,text,res);
-  });
-  console.log('Petición GET recibida correctamente');
+  connection.query('SELECT * FROM tasks WHERE deleted=false', function (error, result) {
+    if (error) {
+      throw error;
+    } else {
+      fs.readFile("./www/tareas/index.html", "utf8", function (err, text) {
+        text = text.replace("[substitute]", loadTasks(result));
+        res.send(text);
+        console.log('Página principal cargada correctamente');
+      })
+    }
+  })
 });
 
 app.post('/', function (req, res) {
   fs.readFile('./www/tareas/index.html', 'utf8', function (err, text) {
     let taskobj = { username: req.body.user, taskname: req.body.task };
-    tasklist.push(taskobj);
     addEntry(taskobj);
     res.redirect("/");
   });
-  console.log('Petición POST recibida correctamente');
+  console.log('Entrada añadida correctamente en base de datos');
 });
 
 app.get('/delete/:id?', function (req, res) {
-  tasklist.splice(req.query.id - 1, 1);
+  // tasklist.splice(req.query.id - 1, 1);
   delEntry(req.query.id);
   res.redirect("/");
-  console.log('Petición DELETE recibida correctamente');
+  console.log('Entrada añadida correctamente');
 });
 
 app.post('/edit', function (req, res) {
@@ -75,40 +81,33 @@ var server = app.listen(3000, function () {
 
 function addEntry(data) {
   var query = connection.query('INSERT INTO tasks (username, taskname) VALUES (?, ?)', [data.username, data.taskname], function (error, result) {
-    if (error) {
-      throw error;
-    }
+    if (error) { throw error; }
   })
 };
 
 function delEntry(index) {
-  var query = connection.query('DELETE FROM tasks WHERE taskid=?', [index], function (error, result) {
-    if (error) {
-      throw error;
-    }
+  var query = connection.query('UPDATE tasks SET deleted=true WHERE taskid=?', [index], function (error, result) {
+    if (error) { throw error; }
   })
 };
 
 function updateEntry(data) {
   var query = connection.query('UPDATE tasks SET username=?, taskname=? WHERE taskid=?', [data.username, data.taskname, data.taskid], function (error, result) {
-    if (error) {
-      throw error;
-    }
+    if (error) { throw error; }
   })
 };
 
-function response(text,res){
+function response(text, res) {
   text = text.replace("[substitute]", loadTasks(tasklist));
   res.send(text);
 };
 
-function readDB(cb,text,res) {
+function readDB(cb, text, res) {
   connection.query('SELECT * FROM tasks', function (error, result) {
     if (error) {
       throw error;
     } else {
-      console.log(result);
-      cb(text,res);
+      cb(text, res);
     }
   })
 };
